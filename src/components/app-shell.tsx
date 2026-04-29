@@ -2,30 +2,62 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Menu, X } from "lucide-react";
+import {
+  Car,
+  FileSpreadsheet,
+  History,
+  Inbox,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  PlusCircle,
+  X,
+} from "lucide-react";
 import { Logo } from "./logo";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { useState } from "react";
 
-export type NavItem = {
+type NavItem = {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
 };
 
+const NAV_CONFIG: Record<"pemohon" | "kasubag" | "admin", NavItem[]> = {
+  pemohon: [
+    { href: "/pemohon", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/pemohon/pengajuan/baru", label: "Pengajuan Baru", icon: PlusCircle },
+    { href: "/pemohon/riwayat", label: "Riwayat", icon: History },
+  ],
+  kasubag: [
+    { href: "/kasubag", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/kasubag/pengajuan", label: "Inbox Pengajuan", icon: Inbox },
+    { href: "/kasubag/riwayat", label: "Riwayat", icon: History },
+    { href: "/kasubag/kendaraan", label: "Data Kendaraan", icon: Car },
+    { href: "/kasubag/export", label: "Export Data", icon: FileSpreadsheet },
+  ],
+  admin: [
+    { href: "/kasubag", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/kasubag/pengajuan", label: "Inbox Pengajuan", icon: Inbox },
+    { href: "/kasubag/riwayat", label: "Riwayat", icon: History },
+    { href: "/kasubag/kendaraan", label: "Data Kendaraan", icon: Car },
+    { href: "/kasubag/export", label: "Export Data", icon: FileSpreadsheet },
+  ],
+};
+
 type Props = {
   role: "pemohon" | "kasubag" | "admin";
   user: { namaLengkap: string; unitKerja: string | null };
-  nav: NavItem[];
   children: React.ReactNode;
 };
 
-export function AppShell({ role, user, nav, children }: Props) {
+export function AppShell({ role, user, children }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const nav = NAV_CONFIG[role];
 
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });

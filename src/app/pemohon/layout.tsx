@@ -1,13 +1,6 @@
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth";
-import { AppShell, type NavItem } from "@/components/app-shell";
-import { LayoutDashboard, PlusCircle, History } from "lucide-react";
-
-const nav: NavItem[] = [
-  { href: "/pemohon", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/pemohon/pengajuan/baru", label: "Pengajuan Baru", icon: PlusCircle },
-  { href: "/pemohon/riwayat", label: "Riwayat", icon: History },
-];
+import { AppShell } from "@/components/app-shell";
 
 export default async function PemohonLayout({ children }: { children: React.ReactNode }) {
   const user = await getSessionUser();
@@ -15,7 +8,7 @@ export default async function PemohonLayout({ children }: { children: React.Reac
   if (user.role !== "pemohon") redirect("/kasubag");
 
   return (
-    <AppShell role="pemohon" user={user} nav={nav}>
+    <AppShell role="pemohon" user={{ namaLengkap: user.namaLengkap, unitKerja: user.unitKerja }}>
       {children}
     </AppShell>
   );
