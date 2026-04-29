@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { User } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { setSession } from "@/lib/auth";
 
@@ -21,7 +22,9 @@ export async function POST(req: NextRequest) {
     // Case-insensitive fallback
     const all = await prisma.user.findMany({ where: { role: "pemohon" } });
     user =
-      all.find((u) => u.namaLengkap.toLowerCase() === namaLengkap.toLowerCase()) ?? null;
+      all.find(
+        (u: User) => u.namaLengkap.toLowerCase() === namaLengkap.toLowerCase(),
+      ) ?? null;
   }
 
   if (!user) {
