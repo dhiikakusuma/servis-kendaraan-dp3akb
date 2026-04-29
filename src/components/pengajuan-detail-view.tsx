@@ -32,6 +32,7 @@ type P = {
   tanggalPengajuan: string;
   tanggalPutusan: string | null;
   alasanPenolakan: string | null;
+  rekananNama: string | null;
   ttdPemohon: string | null;
   ttdKasubag: string | null;
   user: {
@@ -44,6 +45,7 @@ type P = {
     id: string;
     namaLengkap: string;
     nip: string | null;
+    jabatan: string | null;
   } | null;
   kendaraan: {
     id: string;
@@ -143,6 +145,7 @@ export function PengajuanDetailView({
       tanggalRencana: pengajuan.tanggalRencana,
       tanggalPengajuan: pengajuan.tanggalPengajuan,
       tanggalPutusan: pengajuan.tanggalPutusan,
+      rekananNama: pengajuan.rekananNama,
       ttdPemohon: pengajuan.ttdPemohon,
       ttdKasubag: pengajuan.ttdKasubag,
       user: pengajuan.user,

@@ -11,6 +11,7 @@ import {
   LogOut,
   Menu,
   PlusCircle,
+  Settings,
   X,
 } from "lucide-react";
 import { Logo } from "./logo";
@@ -37,6 +38,7 @@ const NAV_CONFIG: Record<"pemohon" | "kasubag" | "admin", NavItem[]> = {
     { href: "/kasubag/riwayat", label: "Riwayat", icon: History },
     { href: "/kasubag/kendaraan", label: "Data Kendaraan", icon: Car },
     { href: "/kasubag/export", label: "Export Data", icon: FileSpreadsheet },
+    { href: "/kasubag/pengaturan", label: "Pengaturan TTD", icon: Settings },
   ],
   admin: [
     { href: "/kasubag", label: "Dashboard", icon: LayoutDashboard },
@@ -44,6 +46,7 @@ const NAV_CONFIG: Record<"pemohon" | "kasubag" | "admin", NavItem[]> = {
     { href: "/kasubag/riwayat", label: "Riwayat", icon: History },
     { href: "/kasubag/kendaraan", label: "Data Kendaraan", icon: Car },
     { href: "/kasubag/export", label: "Export Data", icon: FileSpreadsheet },
+    { href: "/kasubag/pengaturan", label: "Pengaturan TTD", icon: Settings },
   ],
 };
 

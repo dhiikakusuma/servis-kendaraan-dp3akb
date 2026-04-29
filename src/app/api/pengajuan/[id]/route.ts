@@ -14,7 +14,7 @@ export async function GET(
     where: { id },
     include: {
       user: { select: { id: true, namaLengkap: true, nip: true, unitKerja: true } },
-      kasubag: { select: { id: true, namaLengkap: true, nip: true } },
+      kasubag: { select: { id: true, namaLengkap: true, nip: true, jabatan: true } },
       kendaraan: true,
       auditLogs: { orderBy: { timestamp: "desc" } },
     },

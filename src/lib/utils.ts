@@ -42,5 +42,6 @@ export function terbilangStatus(
 
 export function generateNomorSurat(urutan: number, tahun: number) {
   const padded = String(urutan).padStart(3, "0");
-  return `${padded}/SPS/DP3AKB/${tahun}`;
+  // Matches example letter format: "029/_____/DP3AKB-SKT"
+  return `${padded}/${tahun}/DP3AKB-SKT`;
 }

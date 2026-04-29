@@ -12,6 +12,7 @@ export async function GET() {
           namaLengkap: "Sri Hartini, S.Sos.",
           nip: "198001012010011001",
           unitKerja: "Sub Bagian Umum dan Kepegawaian",
+          jabatan: "KASUBAG UMUM",
           role: "kasubag",
           passwordHash: await bcrypt.hash("admin123", 10),
         },

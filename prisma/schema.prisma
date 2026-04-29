@@ -13,6 +13,7 @@ model User {
   nip          String?  @unique
   namaLengkap  String
   unitKerja    String?
+  jabatan      String?  // e.g. "KASUBAG UMUM" - shown on letter signature line
   role         String   @default("pemohon") // pemohon | kasubag | admin
   passwordHash String?
   createdAt    DateTime @default(now())
@@ -49,6 +50,7 @@ model Pengajuan {
   kendaraanId     String
   detailKerusakan String
   tanggalRencana  DateTime
+  rekananNama     String?  // e.g. "PT. Harapan Utama Makmur" (bengkel tujuan)
   status          String   @default("menunggu") // menunggu | disetujui | ditolak
 
   ttdPemohon      String?  // base64 PNG data URL

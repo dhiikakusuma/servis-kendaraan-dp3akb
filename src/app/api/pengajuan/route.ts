@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     where,
     include: {
       user: { select: { id: true, namaLengkap: true, nip: true, unitKerja: true } },
-      kasubag: { select: { id: true, namaLengkap: true, nip: true } },
+      kasubag: { select: { id: true, namaLengkap: true, nip: true, jabatan: true } },
       kendaraan: true,
     },
     orderBy: { tanggalPengajuan: "desc" },
@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
   const detailKerusakan = String(body.detailKerusakan ?? "").trim();
   const tanggalRencana = body.tanggalRencana ? new Date(body.tanggalRencana) : null;
   const ttdPemohon = body.ttdPemohon ? String(body.ttdPemohon) : null;
+  const rekananNama = body.rekananNama ? String(body.rekananNama).trim() : null;
 
   if (!platNomor || !detailKerusakan || !tanggalRencana || !ttdPemohon) {
     return NextResponse.json(
@@ -79,6 +80,7 @@ export async function POST(req: NextRequest) {
       kendaraanId: kendaraan.id,
       detailKerusakan,
       tanggalRencana,
+      rekananNama,
       ttdPemohon,
       status: "menunggu",
     },

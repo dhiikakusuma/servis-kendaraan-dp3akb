@@ -27,6 +27,7 @@ export default function FormPengajuanBaru() {
   const [jenisKendaraan, setJenisKendaraan] = useState("Motor");
   const [detailKerusakan, setDetailKerusakan] = useState("");
   const [tanggalRencana, setTanggalRencana] = useState("");
+  const [rekananNama, setRekananNama] = useState("");
   const [namaPemohon, setNamaPemohon] = useState("");
   const [setuju, setSetuju] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -80,6 +81,7 @@ export default function FormPengajuanBaru() {
           jenisKendaraan,
           detailKerusakan: detailKerusakan.trim(),
           tanggalRencana,
+          rekananNama: rekananNama.trim(),
           ttdPemohon: namaPemohon.trim(),
         }),
       });
@@ -198,14 +200,28 @@ export default function FormPengajuanBaru() {
                 onChange={(e) => setDetailKerusakan(e.target.value)}
               />
             </div>
-            <div className="space-y-1.5 max-w-xs">
-              <Label htmlFor="tanggal">Tanggal Rencana Service *</Label>
-              <Input
-                id="tanggal"
-                type="date"
-                value={tanggalRencana}
-                onChange={(e) => setTanggalRencana(e.target.value)}
-              />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="tanggal">Tanggal Rencana Service *</Label>
+                <Input
+                  id="tanggal"
+                  type="date"
+                  value={tanggalRencana}
+                  onChange={(e) => setTanggalRencana(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="rekanan">Bengkel / Rekanan Tujuan</Label>
+                <Input
+                  id="rekanan"
+                  placeholder="Contoh: PT. Harapan Utama Makmur"
+                  value={rekananNama}
+                  onChange={(e) => setRekananNama(e.target.value)}
+                />
+                <p className="text-xs text-zinc-500">
+                  Akan tampil pada bagian “Kepada Yth.” di surat pengantar.
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>

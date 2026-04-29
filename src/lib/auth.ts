@@ -8,6 +8,7 @@ export type SessionUser = {
   namaLengkap: string;
   nip: string | null;
   unitKerja: string | null;
+  jabatan: string | null;
   role: string;
 };
 
@@ -38,6 +39,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       namaLengkap: true,
       nip: true,
       unitKerja: true,
+      jabatan: true,
       role: true,
     },
   });
