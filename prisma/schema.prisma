@@ -1,0 +1,83 @@
+// Prisma schema for DP3AKB Vehicle Service Request Application
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  nip          String?  @unique
+  namaLengkap  String
+  unitKerja    String?
+  role         String   @default("pemohon") // pemohon | kasubag | admin
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  pengajuanSebagaiPemohon Pengajuan[] @relation("PemohonToPengajuan")
+  pengajuanSebagaiKasubag Pengajuan[] @relation("KasubagToPengajuan")
+  auditLogs               AuditLog[]
+
+  @@map("users")
+}
+
+model Kendaraan {
+  id              String    @id @default(cuid())
+  platNomor       String    @unique
+  merkModel       String
+  jenisKendaraan  String    @default("Motor")
+  namaPengguna    String?
+  tahunPembelian  Int?
+  statusKendaraan String    @default("aktif") // aktif | service | afkir
+  lastServiceDate DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  pengajuan Pengajuan[]
+
+  @@map("kendaraan")
+}
+
+model Pengajuan {
+  id              String  @id @default(cuid())
+  nomorSurat      String? @unique
+  userId          String
+  kendaraanId     String
+  detailKerusakan String
+  tanggalRencana  DateTime
+  status          String   @default("menunggu") // menunggu | disetujui | ditolak
+
+  ttdPemohon      String?  // base64 PNG data URL
+  ttdKasubag      String?  // base64 PNG data URL
+
+  alasanPenolakan  String?
+  tanggalPengajuan DateTime  @default(now())
+  tanggalPutusan   DateTime?
+  kasubagId        String?
+
+  user      User       @relation("PemohonToPengajuan", fields: [userId], references: [id])
+  kasubag   User?      @relation("KasubagToPengajuan", fields: [kasubagId], references: [id])
+  kendaraan Kendaraan  @relation(fields: [kendaraanId], references: [id])
+  auditLogs AuditLog[]
+
+  @@map("pengajuan")
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  pengajuanId String?
+  userId      String?
+  actorName   String
+  action      String   // SUBMIT | APPROVE | REJECT | UPDATE_KENDARAAN | ...
+  ipAddress   String?
+  timestamp   DateTime @default(now())
+
+  pengajuan Pengajuan? @relation(fields: [pengajuanId], references: [id])
+  user      User?      @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
