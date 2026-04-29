@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import * as XLSX from "xlsx";
 import { Download, FileSpreadsheet, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,52 +36,46 @@ export default function ExportPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const exportCsv = () => {
-    const headers = [
-      "Nomor Surat",
-      "Tanggal Pengajuan",
-      "Pemohon",
-      "NIP",
-      "Unit Kerja",
-      "Plat Nomor",
-      "Jenis",
-      "Merk/Model",
-      "Detail Kerusakan",
-      "Tanggal Rencana",
-      "Status",
-      "Kasubag",
-      "Tanggal Putusan",
+  const exportExcel = () => {
+    const rows = list.map((p) => ({
+      "Nomor Surat": p.nomorSurat ?? "",
+      "Tanggal Pengajuan": formatTanggalPendek(p.tanggalPengajuan),
+      Pemohon: p.user.namaLengkap,
+      NIP: p.user.nip ?? "",
+      "Unit Kerja": p.user.unitKerja ?? "",
+      "Plat Nomor": p.kendaraan.platNomor,
+      Jenis: p.kendaraan.jenisKendaraan,
+      "Merk/Model": p.kendaraan.merkModel,
+      "Detail Kerusakan": p.detailKerusakan.replace(/\n/g, " "),
+      "Tanggal Rencana": formatTanggalPendek(p.tanggalRencana),
+      Status: p.status,
+      Kasubag: p.kasubag?.namaLengkap ?? "",
+      "Tanggal Putusan": formatTanggalPendek(p.tanggalPutusan),
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    worksheet["!cols"] = [
+      { wch: 22 },
+      { wch: 14 },
+      { wch: 24 },
+      { wch: 20 },
+      { wch: 26 },
+      { wch: 12 },
+      { wch: 10 },
+      { wch: 22 },
+      { wch: 38 },
+      { wch: 14 },
+      { wch: 12 },
+      { wch: 24 },
+      { wch: 14 },
     ];
-    const rows = list.map((p) => [
-      p.nomorSurat ?? "",
-      formatTanggalPendek(p.tanggalPengajuan),
-      p.user.namaLengkap,
-      p.user.nip ?? "",
-      p.user.unitKerja ?? "",
-      p.kendaraan.platNomor,
-      p.kendaraan.jenisKendaraan,
-      p.kendaraan.merkModel,
-      p.detailKerusakan.replace(/\n/g, " "),
-      formatTanggalPendek(p.tanggalRencana),
-      p.status,
-      p.kasubag?.namaLengkap ?? "",
-      formatTanggalPendek(p.tanggalPutusan),
-    ]);
-
-    const csv = [headers, ...rows]
-      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `pengajuan-service-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success("CSV berhasil diunduh");
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Pengajuan");
+    XLSX.writeFile(
+      workbook,
+      `pengajuan-service-${new Date().toISOString().slice(0, 10)}.xlsx`,
+    );
+    toast.success("Excel berhasil diunduh");
   };
 
   return (
@@ -91,7 +86,7 @@ export default function ExportPage() {
           Export Data Pengajuan
         </h1>
         <p className="text-sm text-zinc-500 mt-1">
-          Unduh seluruh data pengajuan dalam format CSV untuk pelaporan.
+          Unduh seluruh data pengajuan dalam format Excel (.xlsx) untuk pelaporan.
         </p>
       </div>
 
@@ -106,14 +101,14 @@ export default function ExportPage() {
                 {loading ? "Memuat..." : `${list.length} baris siap diekspor`}
               </CardDescription>
             </div>
-            <Button onClick={exportCsv} disabled={loading || list.length === 0}>
+            <Button onClick={exportExcel} disabled={loading || list.length === 0}>
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" /> Memuat...
                 </>
               ) : (
                 <>
-                  <Download className="h-4 w-4" /> Unduh CSV
+                  <Download className="h-4 w-4" /> Unduh Excel
                 </>
               )}
             </Button>
@@ -153,7 +148,7 @@ export default function ExportPage() {
           </table>
           {list.length > 50 && (
             <p className="text-xs text-zinc-500 px-5 py-3 border-t border-zinc-100">
-              Menampilkan 50 dari {list.length} baris. Ekspor CSV untuk data lengkap.
+              Menampilkan 50 dari {list.length} baris. Ekspor Excel untuk data lengkap.
             </p>
           )}
         </CardContent>
