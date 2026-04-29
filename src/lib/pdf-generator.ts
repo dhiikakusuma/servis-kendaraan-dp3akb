@@ -112,7 +112,11 @@ export function generateSuratPengantar(p: PengajuanForPdf) {
   doc.text("Kepada", marginX, y);
   y += 5;
   doc.text("Yth.", marginX, y);
-  doc.text(`Pimpinan ${p.rekananNama ?? "Bengkel Rekanan"}`, marginX + 10, y);
+  doc.text(
+    `Pimpinan ${p.rekananNama?.trim() || "PT. Harapan Utama Makmur"}`,
+    marginX + 10,
+    y,
+  );
   y += 5;
   doc.text("di-", marginX + 10, y);
   y += 5;
