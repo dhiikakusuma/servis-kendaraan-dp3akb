@@ -55,7 +55,7 @@ export default function LoginKasubag() {
             </div>
             <CardTitle>Masuk sebagai Kasubag</CardTitle>
             <CardDescription>
-              Password default: <code className="rounded bg-zinc-100 px-1.5 py-0.5">admin123</code>
+              Gunakan password yang telah diberikan oleh administrator.
             </CardDescription>
           </CardHeader>
           <CardContent>
