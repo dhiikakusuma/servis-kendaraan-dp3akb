@@ -44,7 +44,7 @@ export default async function LandingPage() {
             <Sparkles className="h-3.5 w-3.5" /> Digitalisasi Layanan Kendaraan Dinas
           </div>
           <h1 className="text-3xl sm:text-4xl md:text-6xl font-semibold tracking-tight text-zinc-900 max-w-3xl mx-auto leading-[1.15]">
-            Pengajuan service kendaraan dinas, <span className="text-brand-600">tanpa datang ke kantor.</span>
+            Pengajuan Service Kendaraan <span className="text-brand-600">DP3AKB Kota Balikpapan</span>
           </h1>
           <p className="mt-5 text-base md:text-lg text-zinc-600 max-w-2xl mx-auto">
             Ajukan, disetujui, tanda tangan digital, lalu unduh surat pengantar PDF resmi —
