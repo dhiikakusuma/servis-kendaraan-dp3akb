@@ -21,7 +21,7 @@ export default async function LandingPage() {
 
   return (
     <div className="bg-mesh min-h-screen">
-      <header className="mx-auto max-w-6xl px-6 py-6 flex items-center justify-between">
+      <header className="mx-auto max-w-6xl px-5 sm:px-6 py-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Logo size="sm" />
           <div>
@@ -37,13 +37,13 @@ export default async function LandingPage() {
         </Link>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 pb-20">
+      <main className="mx-auto max-w-6xl px-5 sm:px-6 pb-20">
         {/* Hero */}
         <section className="pt-10 md:pt-16 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700 mb-6">
             <Sparkles className="h-3.5 w-3.5" /> Digitalisasi Layanan Kendaraan Dinas
           </div>
-          <h1 className="text-4xl md:text-6xl font-semibold tracking-tight text-zinc-900 max-w-3xl mx-auto leading-[1.1]">
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-semibold tracking-tight text-zinc-900 max-w-3xl mx-auto leading-[1.15]">
             Pengajuan service kendaraan dinas, <span className="text-brand-600">tanpa datang ke kantor.</span>
           </h1>
           <p className="mt-5 text-base md:text-lg text-zinc-600 max-w-2xl mx-auto">
@@ -68,7 +68,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Workflow */}
-        <section className="mt-24">
+        <section className="mt-20 md:mt-24">
           <div className="text-center mb-10">
             <p className="text-xs uppercase tracking-widest text-brand-600 font-semibold mb-2">
               Alur Kerja
@@ -77,7 +77,7 @@ export default async function LandingPage() {
               8 langkah, selesai.
             </h2>
           </div>
-          <ol className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <ol className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {STEPS.map((step, i) => (
               <li
                 key={step.title}
@@ -97,7 +97,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Features */}
-        <section className="mt-24 grid md:grid-cols-3 gap-4">
+        <section className="mt-20 md:mt-24 grid md:grid-cols-3 gap-4">
           {FEATURES.map((f) => (
             <div
               key={f.title}
@@ -113,7 +113,7 @@ export default async function LandingPage() {
         </section>
 
         {/* CTA */}
-        <section className="mt-24 relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 to-brand-800 p-10 md:p-16 text-white">
+        <section className="mt-20 md:mt-24 relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 to-brand-800 p-8 sm:p-10 md:p-16 text-white">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,rgba(255,255,255,0.2),transparent_60%)]" />
           <div className="relative">
             <h2 className="text-2xl md:text-4xl font-semibold tracking-tight max-w-xl">
@@ -146,7 +146,7 @@ export default async function LandingPage() {
 const STEPS = [
   { title: "Login Pemohon", desc: "Masuk dengan nama lengkap — tanpa password ribet.", icon: UserCircle2 },
   { title: "Buat Pengajuan", desc: "Input plat nomor, kerusakan, dan tanggal rencana.", icon: Workflow },
-  { title: "Tanda Tangan Pemohon", desc: "TTD digital via canvas langsung dari perangkat.", icon: FileSignature },
+  { title: "Tanda Tangan Pemohon", desc: "Konfirmasi pengajuan dengan nama terang sebagai TTD elektronik.", icon: FileSignature },
   { title: "Review Kasubag", desc: "Kasubag melihat, meninjau, dan memutuskan.", icon: ShieldCheck },
   { title: "Persetujuan + TTD", desc: "Setujui/tolak dengan tanda tangan digital resmi.", icon: CheckCircle2 },
   { title: "Generate PDF", desc: "Surat pengantar PDF otomatis dengan kop + TTD.", icon: FileText },
@@ -156,8 +156,8 @@ const STEPS = [
 
 const FEATURES = [
   {
-    title: "Tanda Tangan Digital Canvas",
-    desc: "Bukan hanya nama terang — TTD tergambar asli, tersimpan sebagai image, dan dicetak di PDF.",
+    title: "Tanda Tangan Elektronik",
+    desc: "Cukup isi nama lengkap sebagai tanda tangan, dicetak otomatis di surat PDF resmi.",
     icon: FileSignature,
   },
   {

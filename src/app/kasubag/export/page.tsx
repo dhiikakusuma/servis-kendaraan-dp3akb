@@ -120,7 +120,7 @@ export default function ExportPage() {
           </div>
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm min-w-[620px]">
             <thead className="bg-zinc-50 text-xs text-zinc-500 uppercase tracking-widest">
               <tr>
                 <th className="text-left px-5 py-3 font-medium">Nomor Surat</th>

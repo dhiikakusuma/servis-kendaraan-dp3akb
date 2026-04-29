@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { SignaturePadField } from "@/components/ui/signature-pad";
+import { SignatureNameField } from "@/components/ui/signature-name";
 import { toast } from "@/components/ui/toast";
 
 type Kendaraan = {
@@ -27,7 +27,8 @@ export default function FormPengajuanBaru() {
   const [jenisKendaraan, setJenisKendaraan] = useState("Motor");
   const [detailKerusakan, setDetailKerusakan] = useState("");
   const [tanggalRencana, setTanggalRencana] = useState("");
-  const [ttdPemohon, setTtdPemohon] = useState<string | null>(null);
+  const [namaPemohon, setNamaPemohon] = useState("");
+  const [setuju, setSetuju] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -35,6 +36,12 @@ export default function FormPengajuanBaru() {
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data)) setKendaraanList(data);
+      })
+      .catch(() => {});
+    fetch("/api/me")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.user?.namaLengkap) setNamaPemohon(data.user.namaLengkap);
       })
       .catch(() => {});
   }, []);
@@ -50,8 +57,16 @@ export default function FormPengajuanBaru() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!platNomor.trim() || !detailKerusakan.trim() || !tanggalRencana || !ttdPemohon) {
-      toast.error("Semua field wajib diisi termasuk tanda tangan");
+    if (!platNomor.trim() || !detailKerusakan.trim() || !tanggalRencana) {
+      toast.error("Plat nomor, detail kerusakan, dan tanggal rencana wajib diisi");
+      return;
+    }
+    if (!namaPemohon.trim()) {
+      toast.error("Nama tanda tangan wajib diisi");
+      return;
+    }
+    if (!setuju) {
+      toast.error("Centang persetujuan terlebih dahulu");
       return;
     }
     setSubmitting(true);
@@ -65,10 +80,11 @@ export default function FormPengajuanBaru() {
           jenisKendaraan,
           detailKerusakan: detailKerusakan.trim(),
           tanggalRencana,
-          ttdPemohon,
+          ttdPemohon: namaPemohon.trim(),
         }),
       });
-      const json = await res.json();
+      const text = await res.text();
+      const json = text ? JSON.parse(text) : {};
       if (!res.ok) throw new Error(json.error ?? "Gagal mengirim pengajuan");
       toast.success("Pengajuan berhasil dikirim");
       router.replace(`/pemohon/pengajuan/${json.id}`);
@@ -94,7 +110,7 @@ export default function FormPengajuanBaru() {
           Ajukan Service Kendaraan
         </h1>
         <p className="text-sm text-zinc-500 mt-1">
-          Isi data berikut dan berikan tanda tangan digital.
+          Isi data berikut dan konfirmasi dengan nama terang sebagai tanda tangan digital.
         </p>
       </div>
 
@@ -129,7 +145,7 @@ export default function FormPengajuanBaru() {
               </div>
             )}
 
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="plat">Plat Nomor *</Label>
                 <Input
@@ -151,7 +167,7 @@ export default function FormPengajuanBaru() {
                   <option>Mobil</option>
                 </select>
               </div>
-              <div className="space-y-1.5 md:col-span-2">
+              <div className="space-y-1.5 sm:col-span-2">
                 <Label htmlFor="merk">Merk / Model</Label>
                 <Input
                   id="merk"
@@ -196,18 +212,41 @@ export default function FormPengajuanBaru() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Tanda Tangan Pemohon</CardTitle>
+            <CardTitle>Tanda Tangan Elektronik Pemohon</CardTitle>
             <CardDescription>
-              Gambar tanda tangan kamu sebagai bukti pengajuan.
+              Tuliskan nama terang Anda sebagai tanda persetujuan dan tanggung jawab atas pengajuan
+              ini.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <SignaturePadField onChange={setTtdPemohon} />
+          <CardContent className="space-y-4">
+            <SignatureNameField
+              value={namaPemohon}
+              onChange={setNamaPemohon}
+              placeholder="Nama lengkap"
+              hint="Nama yang ditulis akan tampil sebagai tanda tangan di surat pengantar."
+            />
+            <label className="flex items-start gap-3 rounded-xl border border-zinc-200 p-3 cursor-pointer hover:bg-zinc-50">
+              <input
+                type="checkbox"
+                checked={setuju}
+                onChange={(e) => setSetuju(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-brand-600 focus:ring-brand-500"
+              />
+              <span className="text-sm text-zinc-700">
+                Saya, <span className="font-semibold">{namaPemohon || "—"}</span>, menyatakan data
+                di atas benar dan menandatangani pengajuan ini secara elektronik.
+              </span>
+            </label>
           </CardContent>
         </Card>
 
-        <div className="flex items-center gap-3 justify-end sticky bottom-0 bg-gradient-to-t from-zinc-50 via-zinc-50 to-zinc-50/0 pt-6 pb-2">
-          <Button type="button" variant="outline" onClick={() => router.back()} disabled={submitting}>
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 sm:justify-end sticky bottom-0 bg-gradient-to-t from-zinc-50 via-zinc-50 to-zinc-50/0 pt-6 pb-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.back()}
+            disabled={submitting}
+          >
             Batal
           </Button>
           <Button type="submit" size="lg" disabled={submitting}>

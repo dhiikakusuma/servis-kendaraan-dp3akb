@@ -100,7 +100,7 @@ export function KendaraanManager({ initial }: { initial: K[] }) {
             <CardDescription>Lengkapi data kendaraan yang ingin didaftarkan.</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={onAdd} className="grid md:grid-cols-2 gap-4">
+            <form onSubmit={onAdd} className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Plat Nomor *</Label>
                 <Input
@@ -120,7 +120,7 @@ export function KendaraanManager({ initial }: { initial: K[] }) {
                   <option>Mobil</option>
                 </select>
               </div>
-              <div className="space-y-1.5 md:col-span-2">
+              <div className="space-y-1.5 sm:col-span-2">
                 <Label>Merk / Model *</Label>
                 <Input
                   placeholder="Honda Vario 150"
@@ -147,7 +147,7 @@ export function KendaraanManager({ initial }: { initial: K[] }) {
                   onChange={(e) => setForm({ ...form, tahunPembelian: e.target.value })}
                 />
               </div>
-              <div className="md:col-span-2 flex items-center gap-3 justify-end">
+              <div className="sm:col-span-2 flex items-center gap-3 justify-end">
                 <Button type="button" variant="ghost" onClick={() => setShowForm(false)} disabled={busy}>
                   Batal
                 </Button>
@@ -168,7 +168,7 @@ export function KendaraanManager({ initial }: { initial: K[] }) {
 
       <Card>
         <CardContent className="p-0 overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm min-w-[780px]">
             <thead className="bg-zinc-50 text-xs text-zinc-500 uppercase tracking-widest">
               <tr>
                 <th className="text-left px-5 py-3 font-medium">Plat</th>

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { SignaturePadField } from "@/components/ui/signature-pad";
+import { SignatureNameField } from "@/components/ui/signature-name";
 import { toast } from "@/components/ui/toast";
 import { formatTanggal } from "@/lib/utils";
 import { downloadSuratPengantar, type PengajuanForPdf } from "@/lib/pdf-generator";
@@ -63,7 +63,7 @@ export function PengajuanDetailView({
   viewerRole: "pemohon" | "kasubag";
 }) {
   const router = useRouter();
-  const [ttdKasubag, setTtdKasubag] = useState<string | null>(null);
+  const [ttdKasubag, setTtdKasubag] = useState("");
   const [alasan, setAlasan] = useState("");
   const [busy, setBusy] = useState<false | "approve" | "reject" | "delete">(false);
   const [mode, setMode] = useState<"view" | "reject">("view");
@@ -72,8 +72,8 @@ export function PengajuanDetailView({
   const canDelete = viewerRole === "pemohon" && pengajuan.status === "menunggu";
 
   const handleApprove = async () => {
-    if (!ttdKasubag) {
-      toast.error("Tanda tangan kasubag wajib diberikan");
+    if (!ttdKasubag.trim()) {
+      toast.error("Nama tanda tangan kasubag wajib diisi");
       return;
     }
     setBusy("approve");
@@ -81,9 +81,10 @@ export function PengajuanDetailView({
       const res = await fetch(`/api/pengajuan/${pengajuan.id}/approve`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ttdKasubag }),
+        body: JSON.stringify({ ttdKasubag: ttdKasubag.trim() }),
       });
-      const json = await res.json();
+      const text = await res.text();
+      const json = text ? JSON.parse(text) : {};
       if (!res.ok) throw new Error(json.error ?? "Gagal menyetujui");
       toast.success("Pengajuan disetujui dan surat siap dicetak");
       router.refresh();
@@ -106,7 +107,8 @@ export function PengajuanDetailView({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ alasanPenolakan: alasan.trim() }),
       });
-      const json = await res.json();
+      const text = await res.text();
+      const json = text ? JSON.parse(text) : {};
       if (!res.ok) throw new Error(json.error ?? "Gagal menolak");
       toast.success("Pengajuan ditolak");
       setMode("view");
@@ -194,7 +196,7 @@ export function PengajuanDetailView({
               </p>
             </div>
           </div>
-          <Button onClick={handleDownload}>
+          <Button onClick={handleDownload} className="w-full sm:w-auto">
             <Download className="h-4 w-4" /> Unduh Surat PDF
           </Button>
         </div>
@@ -253,13 +255,13 @@ export function PengajuanDetailView({
           title="TTD Pemohon"
           name={pengajuan.user.namaLengkap}
           nip={pengajuan.user.nip}
-          image={pengajuan.ttdPemohon}
+          ttdNama={pengajuan.ttdPemohon}
         />
         <SignatureCard
           title="TTD Kasubag"
           name={pengajuan.kasubag?.namaLengkap ?? "(Belum ditandatangani)"}
           nip={pengajuan.kasubag?.nip ?? null}
-          image={pengajuan.ttdKasubag}
+          ttdNama={pengajuan.ttdKasubag}
         />
       </div>
 
@@ -273,12 +275,14 @@ export function PengajuanDetailView({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-zinc-700">Tanda Tangan Kasubag</p>
-              <SignaturePadField onChange={setTtdKasubag} />
-            </div>
-            <div className="flex items-center gap-3 flex-wrap">
-              <Button onClick={handleApprove} disabled={!ttdKasubag || busy !== false}>
+            <SignatureNameField
+              value={ttdKasubag}
+              onChange={setTtdKasubag}
+              placeholder="Nama lengkap kasubag"
+              hint="Nama akan tampil sebagai tanda tangan persetujuan di surat pengantar."
+            />
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 sm:flex-wrap">
+              <Button onClick={handleApprove} disabled={!ttdKasubag.trim() || busy !== false}>
                 {busy === "approve" ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" /> Menyetujui...
@@ -357,23 +361,30 @@ function SignatureCard({
   title,
   name,
   nip,
-  image,
+  ttdNama,
 }: {
   title: string;
   name: string;
   nip: string | null;
-  image: string | null;
+  ttdNama: string | null;
 }) {
+  // Existing signatures saved as base64 PNG are gracefully replaced with the signer's name text.
+  const isLegacyImage = ttdNama?.startsWith("data:image");
+  const display = !ttdNama || isLegacyImage ? null : ttdNama;
   return (
     <Card>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="rounded-xl border border-dashed border-zinc-200 bg-white h-28 flex items-center justify-center">
-          {image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={image} alt={title} className="max-h-24 object-contain" />
+        <div className="rounded-xl border border-dashed border-brand-300 bg-brand-50/60 h-28 flex items-center justify-center px-3">
+          {display ? (
+            <p
+              className="text-2xl sm:text-3xl text-brand-900 italic text-center"
+              style={{ fontFamily: "'Brush Script MT', 'Lucida Handwriting', cursive" }}
+            >
+              {display}
+            </p>
           ) : (
             <span className="text-xs text-zinc-400">Belum ada tanda tangan</span>
           )}

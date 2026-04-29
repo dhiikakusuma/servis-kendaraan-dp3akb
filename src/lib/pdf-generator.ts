@@ -94,7 +94,7 @@ export function generateSuratPengantar(p: PengajuanForPdf) {
     startY: y,
     theme: "grid",
     styles: { font: "helvetica", fontSize: 10, cellPadding: 2.5 },
-    headStyles: { fillColor: [6, 95, 70], textColor: 255, fontStyle: "bold" },
+    headStyles: { fillColor: [3, 105, 161], textColor: 255, fontStyle: "bold" },
     columnStyles: { 0: { cellWidth: 55, fontStyle: "bold" } },
     body: [
       ["Pemohon", p.user.namaLengkap + (p.user.nip ? ` (NIP. ${p.user.nip})` : "")],
@@ -127,20 +127,36 @@ export function generateSuratPengantar(p: PengajuanForPdf) {
 
   doc.text("Pemohon,", leftX, y);
 
-  // Signature images
+  // Signature blocks (nama terang sebagai tanda tangan elektronik)
   const sigBoxY = y + 8;
-  const sigW = 45;
+  const sigW = 55;
   const sigH = 22;
+
+  // Only use image embeds when value is still a legacy base64 PNG (backward compat)
+  const isLegacyImage = (s: string | null) => !!s && s.startsWith("data:image");
+
   try {
-    if (p.ttdPemohon) {
-      doc.addImage(p.ttdPemohon, "PNG", leftX, sigBoxY, sigW, sigH);
+    if (isLegacyImage(p.ttdPemohon)) {
+      doc.addImage(p.ttdPemohon!, "PNG", leftX, sigBoxY, sigW, sigH);
+    } else if (p.ttdPemohon) {
+      doc.setFont("times", "italic");
+      doc.setFontSize(16);
+      doc.text(p.ttdPemohon, leftX, sigBoxY + sigH - 4);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
     }
   } catch {
-    /* ignore bad image */
+    /* ignore */
   }
   try {
-    if (p.ttdKasubag) {
-      doc.addImage(p.ttdKasubag, "PNG", rightX, sigBoxY, sigW, sigH);
+    if (isLegacyImage(p.ttdKasubag)) {
+      doc.addImage(p.ttdKasubag!, "PNG", rightX, sigBoxY, sigW, sigH);
+    } else if (p.ttdKasubag) {
+      doc.setFont("times", "italic");
+      doc.setFontSize(16);
+      doc.text(p.ttdKasubag, rightX, sigBoxY + sigH - 4);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
     }
   } catch {
     /* ignore */
