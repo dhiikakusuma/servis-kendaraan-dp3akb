@@ -1,60 +1,90 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CheckCircle2, Clock, XCircle, ArrowRight, Car } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, ArrowRight, ClipboardCheck } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/status-badge";
+import { VerifStatusBadge } from "@/components/status-badge";
 import { formatTanggal } from "@/lib/utils";
 
-export default async function KasubagDashboard() {
+export default async function VerifikatorDashboard() {
   const user = await getSessionUser();
-  if (!user) redirect("/login/kasubag");
+  if (!user) redirect("/login/verifikator");
 
-  const [counts, pending, kendCount] = await Promise.all([
-    prisma.pengajuan.groupBy({ by: ["status"], _count: true }),
+  const [counts, pending] = await Promise.all([
+    prisma.pengajuan.groupBy({
+      by: ["statusVerifikasi"],
+      _count: true,
+    }),
     prisma.pengajuan.findMany({
-      where: { status: "menunggu", statusVerifikasi: "diverifikasi" },
+      where: { statusVerifikasi: "menunggu_verifikasi" },
       include: { user: true, kendaraan: true },
       orderBy: { tanggalPengajuan: "desc" },
       take: 5,
     }),
-    prisma.kendaraan.count(),
   ]);
 
-  const map = Object.fromEntries(counts.map((c) => [c.status, c._count])) as Record<string, number>;
+  const map = Object.fromEntries(
+    counts.map((c) => [c.statusVerifikasi, c._count]),
+  ) as Record<string, number>;
 
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-xs text-zinc-500 uppercase tracking-widest">Dashboard Kasubag</p>
+        <p className="text-xs text-zinc-500 uppercase tracking-widest">Dashboard Verifikator</p>
         <h1 className="text-2xl md:text-3xl font-semibold tracking-tight mt-1">
           Selamat datang, {user.namaLengkap.split(" ")[0]}
         </h1>
         <p className="text-sm text-zinc-500 mt-1">
-          Pantau dan putuskan pengajuan service kendaraan dinas di sini.
+          Verifikasi setiap pengajuan service sebelum diteruskan ke kasubag.
         </p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Menunggu" value={map.menunggu ?? 0} icon={Clock} tone="amber" />
-        <StatCard label="Disetujui" value={map.disetujui ?? 0} icon={CheckCircle2} tone="emerald" />
-        <StatCard label="Ditolak" value={map.ditolak ?? 0} icon={XCircle} tone="red" />
-        <StatCard label="Kendaraan" value={kendCount} icon={Car} tone="zinc" />
+        <StatCard
+          label="Menunggu Verifikasi"
+          value={map.menunggu_verifikasi ?? 0}
+          icon={Clock}
+          tone="amber"
+        />
+        <StatCard
+          label="Sudah Diverifikasi"
+          value={map.diverifikasi ?? 0}
+          icon={CheckCircle2}
+          tone="emerald"
+        />
+        <StatCard
+          label="Ditolak Verifikator"
+          value={map.ditolak_verifikator ?? 0}
+          icon={XCircle}
+          tone="red"
+        />
+        <StatCard
+          label="Total Diproses"
+          value={
+            (map.menunggu_verifikasi ?? 0) +
+            (map.diverifikasi ?? 0) +
+            (map.ditolak_verifikator ?? 0)
+          }
+          icon={ClipboardCheck}
+          tone="zinc"
+        />
       </div>
 
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Menunggu Persetujuan</CardTitle>
+              <CardTitle>Menunggu Verifikasi</CardTitle>
               <CardDescription>
-                {pending.length === 0 ? "Tidak ada pengajuan yang menunggu" : `${pending.length} pengajuan menunggu tindakan`}
+                {pending.length === 0
+                  ? "Tidak ada pengajuan yang menunggu verifikasi"
+                  : `${pending.length} pengajuan menunggu tindakan`}
               </CardDescription>
             </div>
             <Button asChild variant="ghost" size="sm">
-              <Link href="/kasubag/pengajuan">
+              <Link href="/verifikator/pengajuan">
                 Lihat semua <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </Button>
@@ -63,14 +93,14 @@ export default async function KasubagDashboard() {
         <CardContent>
           {pending.length === 0 ? (
             <div className="rounded-xl border border-dashed border-zinc-200 p-10 text-center">
-              <p className="text-sm text-zinc-500">Semua pengajuan sudah diputuskan 🎉</p>
+              <p className="text-sm text-zinc-500">Semua pengajuan sudah diverifikasi 🎉</p>
             </div>
           ) : (
             <ul className="divide-y divide-zinc-100">
               {pending.map((p) => (
                 <li key={p.id}>
                   <Link
-                    href={`/kasubag/pengajuan/${p.id}`}
+                    href={`/verifikator/pengajuan/${p.id}`}
                     className="flex items-center justify-between py-4 hover:bg-zinc-50 -mx-2 px-2 rounded-xl transition-colors"
                   >
                     <div className="min-w-0 flex-1">
@@ -78,7 +108,7 @@ export default async function KasubagDashboard() {
                         <p className="font-medium text-sm text-zinc-900">
                           {p.kendaraan.platNomor} · {p.kendaraan.merkModel}
                         </p>
-                        <StatusBadge status={p.status} />
+                        <VerifStatusBadge status={p.statusVerifikasi} />
                       </div>
                       <p className="text-xs text-zinc-500 mt-1">
                         Oleh <strong>{p.user.namaLengkap}</strong>
@@ -123,12 +153,12 @@ function StatCard({
   return (
     <div className="rounded-2xl border border-zinc-200 bg-white p-4">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs text-zinc-500">{label}</span>
-        <div className={`h-8 w-8 rounded-lg ${toneMap[tone]} flex items-center justify-center`}>
+        <span className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${toneMap[tone]}`}>
           <Icon className="h-4 w-4" />
-        </div>
+        </span>
       </div>
-      <p className="text-2xl font-semibold tabular-nums">{value}</p>
+      <p className="text-2xl font-semibold tracking-tight">{value}</p>
+      <p className="text-xs text-zinc-500 mt-1">{label}</p>
     </div>
   );
 }

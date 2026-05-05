@@ -33,6 +33,23 @@ export async function GET() {
       });
     }
 
+    // Verifikator
+    const verifikator = await prisma.user.findFirst({
+      where: { role: "verifikator" },
+    });
+    if (!verifikator) {
+      await prisma.user.create({
+        data: {
+          namaLengkap: "Sayo",
+          nip: "199501012020011001",
+          unitKerja: "Sub Bagian Umum dan Kepegawaian",
+          jabatan: "STAFF VERIFIKATOR",
+          role: "verifikator",
+          passwordHash: await bcrypt.hash("verif123", 10),
+        },
+      });
+    }
+
     // Pemohon sample
     const pemohonCount = await prisma.user.count({ where: { role: "pemohon" } });
     if (pemohonCount === 0) {
@@ -80,6 +97,7 @@ export async function GET() {
       credentials: {
         kasubag: { password: "admin123" },
         admin: { password: "admin123" },
+        verifikator: { password: "verif123" },
         pemohon_contoh: ["Budi Santoso", "Siti Rahayu", "Ahmad Hidayat"],
       },
     });

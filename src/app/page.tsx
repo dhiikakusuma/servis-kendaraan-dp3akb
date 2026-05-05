@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ArrowRight,
   CheckCircle2,
+  ClipboardCheck,
   FileSignature,
   FileText,
   ShieldCheck,
@@ -17,6 +18,7 @@ import { getSessionUser } from "@/lib/auth";
 export default async function LandingPage() {
   const session = await getSessionUser();
   if (session?.role === "pemohon") redirect("/pemohon");
+  if (session?.role === "verifikator") redirect("/verifikator");
   if (session?.role === "kasubag" || session?.role === "admin") redirect("/kasubag");
 
   return (
@@ -50,10 +52,15 @@ export default async function LandingPage() {
             Ajukan, disetujui, tanda tangan digital, lalu unduh surat pengantar PDF resmi —
             semua dari satu dashboard. Bawa PDF langsung ke bengkel rekanan.
           </p>
-          <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
             <Button asChild size="lg">
               <Link href="/login/pemohon">
                 <UserCircle2 className="h-4 w-4" /> Masuk sebagai Pemohon
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link href="/login/verifikator">
+                <ClipboardCheck className="h-4 w-4" /> Masuk sebagai Verifikator
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">

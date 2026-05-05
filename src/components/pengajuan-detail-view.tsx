@@ -15,6 +15,7 @@ import {
   Calendar,
   Car,
   CheckCircle2,
+  ClipboardCheck,
   Download,
   FileText,
   Loader2,
@@ -27,6 +28,9 @@ type P = {
   id: string;
   nomorSurat: string | null;
   status: string;
+  statusVerifikasi: string;
+  catatanVerifikator: string | null;
+  verifiedAt: string | null;
   detailKerusakan: string;
   tanggalRencana: string;
   tanggalPengajuan: string;
@@ -41,6 +45,12 @@ type P = {
     nip: string | null;
     unitKerja: string | null;
   };
+  verifikator: {
+    id: string;
+    namaLengkap: string;
+    nip: string | null;
+    jabatan: string | null;
+  } | null;
   kasubag: {
     id: string;
     namaLengkap: string;
@@ -62,15 +72,25 @@ export function PengajuanDetailView({
   viewerRole,
 }: {
   pengajuan: P;
-  viewerRole: "pemohon" | "kasubag";
+  viewerRole: "pemohon" | "verifikator" | "kasubag";
 }) {
   const router = useRouter();
   const [ttdKasubag, setTtdKasubag] = useState("");
   const [alasan, setAlasan] = useState("");
-  const [busy, setBusy] = useState<false | "approve" | "reject" | "delete">(false);
-  const [mode, setMode] = useState<"view" | "reject">("view");
+  const [catatanVerif, setCatatanVerif] = useState("");
+  const [busy, setBusy] = useState<
+    false | "approve" | "reject" | "delete" | "verify-approve" | "verify-reject"
+  >(false);
+  const [mode, setMode] = useState<"view" | "reject" | "verify-reject">("view");
 
-  const canDecide = viewerRole === "kasubag" && pengajuan.status === "menunggu";
+  const canVerify =
+    viewerRole === "verifikator" &&
+    pengajuan.statusVerifikasi === "menunggu_verifikasi" &&
+    pengajuan.status === "menunggu";
+  const canDecide =
+    viewerRole === "kasubag" &&
+    pengajuan.status === "menunggu" &&
+    pengajuan.statusVerifikasi === "diverifikasi";
   const canDelete = viewerRole === "pemohon" && pengajuan.status === "menunggu";
 
   const handleApprove = async () => {
@@ -113,6 +133,55 @@ export function PengajuanDetailView({
       const json = text ? JSON.parse(text) : {};
       if (!res.ok) throw new Error(json.error ?? "Gagal menolak");
       toast.success("Pengajuan ditolak");
+      setMode("view");
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal menolak");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleVerifyApprove = async () => {
+    if (!catatanVerif.trim()) {
+      toast.error("Catatan verifikator wajib diisi");
+      return;
+    }
+    setBusy("verify-approve");
+    try {
+      const res = await fetch(`/api/pengajuan/${pengajuan.id}/verify`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "approve", catatan: catatanVerif.trim() }),
+      });
+      const text = await res.text();
+      const json = text ? JSON.parse(text) : {};
+      if (!res.ok) throw new Error(json.error ?? "Gagal verifikasi");
+      toast.success("Diverifikasi & diteruskan ke kasubag");
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal verifikasi");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleVerifyReject = async () => {
+    if (!catatanVerif.trim()) {
+      toast.error("Alasan penolakan wajib diisi");
+      return;
+    }
+    setBusy("verify-reject");
+    try {
+      const res = await fetch(`/api/pengajuan/${pengajuan.id}/verify`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "reject", catatan: catatanVerif.trim() }),
+      });
+      const text = await res.text();
+      const json = text ? JSON.parse(text) : {};
+      if (!res.ok) throw new Error(json.error ?? "Gagal menolak");
+      toast.success("Pengajuan ditolak verifikator");
       setMode("view");
       router.refresh();
     } catch (err) {
@@ -177,6 +246,36 @@ export function PengajuanDetailView({
           )}
         </div>
       </div>
+
+      {/* Verifikasi status timeline */}
+      {pengajuan.statusVerifikasi === "menunggu_verifikasi" && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
+          <ClipboardCheck className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-sm text-amber-900">
+              Menunggu verifikasi
+            </p>
+            <p className="text-sm text-amber-800 mt-0.5">
+              Pengajuan akan diteruskan ke kasubag setelah diverifikasi.
+            </p>
+          </div>
+        </div>
+      )}
+      {pengajuan.statusVerifikasi === "diverifikasi" && pengajuan.catatanVerifikator && (
+        <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 flex items-start gap-3">
+          <CheckCircle2 className="h-5 w-5 text-sky-600 flex-shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <p className="font-semibold text-sm text-sky-900">
+              Telah diverifikasi
+              {pengajuan.verifikator && ` oleh ${pengajuan.verifikator.namaLengkap}`}
+              {pengajuan.verifiedAt && ` · ${formatTanggal(pengajuan.verifiedAt)}`}
+            </p>
+            <p className="text-sm text-sky-800 mt-0.5 whitespace-pre-wrap">
+              <span className="font-medium">Catatan:</span> {pengajuan.catatanVerifikator}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Alerts */}
       {pengajuan.status === "ditolak" && pengajuan.alasanPenolakan && (
@@ -267,6 +366,111 @@ export function PengajuanDetailView({
           ttdNama={pengajuan.ttdKasubag}
         />
       </div>
+
+      {/* Kasubag waiting for verifikasi */}
+      {viewerRole === "kasubag" &&
+        pengajuan.status === "menunggu" &&
+        pengajuan.statusVerifikasi === "menunggu_verifikasi" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Menunggu Verifikator</CardTitle>
+              <CardDescription>
+                Pengajuan ini belum diverifikasi. Tindakan kasubag tersedia setelah
+                verifikator menerima pengajuan.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        )}
+
+      {/* Verifikator actions */}
+      {canVerify && mode === "view" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Tindakan Verifikator</CardTitle>
+            <CardDescription>
+              Centang verifikasi dengan catatan, atau tolak jika pengajuan tidak valid.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="space-y-1.5">
+              <label
+                htmlFor="catatan-verif"
+                className="text-sm font-medium text-zinc-900"
+              >
+                Catatan Verifikasi
+              </label>
+              <Textarea
+                id="catatan-verif"
+                placeholder="Contoh: Data kendaraan & detail kerusakan sudah sesuai. Diteruskan ke kasubag untuk persetujuan."
+                rows={4}
+                value={catatanVerif}
+                onChange={(e) => setCatatanVerif(e.target.value)}
+              />
+              <p className="text-xs text-zinc-500">
+                Catatan ini akan terlihat oleh kasubag dan pemohon.
+              </p>
+            </div>
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 sm:flex-wrap">
+              <Button
+                onClick={handleVerifyApprove}
+                disabled={!catatanVerif.trim() || busy !== false}
+              >
+                {busy === "verify-approve" ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Memverifikasi...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4" /> Verifikasi & Teruskan ke Kasubag
+                  </>
+                )}
+              </Button>
+              <Button variant="destructive" onClick={() => setMode("verify-reject")}>
+                <XCircle className="h-4 w-4" /> Tolak Pengajuan
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {canVerify && mode === "verify-reject" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Alasan Penolakan</CardTitle>
+            <CardDescription>
+              Pengajuan tidak akan diteruskan ke kasubag. Pemohon akan melihat alasan ini.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Textarea
+              placeholder="Contoh: Plat nomor tidak terdaftar di aset dinas. Mohon ajukan ulang dengan kendaraan yang benar."
+              rows={4}
+              value={catatanVerif}
+              onChange={(e) => setCatatanVerif(e.target.value)}
+            />
+            <div className="flex items-center gap-3 flex-wrap">
+              <Button
+                variant="destructive"
+                onClick={handleVerifyReject}
+                disabled={busy !== false || !catatanVerif.trim()}
+              >
+                {busy === "verify-reject" ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Menolak...
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="h-4 w-4" /> Konfirmasi Tolak
+                  </>
+                )}
+              </Button>
+              <Button variant="ghost" onClick={() => setMode("view")}>
+                Batal
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Kasubag actions */}
       {canDecide && mode === "view" && (

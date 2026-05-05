@@ -14,14 +14,15 @@ model User {
   namaLengkap  String
   unitKerja    String?
   jabatan      String?  // e.g. "KASUBAG UMUM" - shown on letter signature line
-  role         String   @default("pemohon") // pemohon | kasubag | admin
+  role         String   @default("pemohon") // pemohon | verifikator | kasubag | admin
   passwordHash String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  pengajuanSebagaiPemohon Pengajuan[] @relation("PemohonToPengajuan")
-  pengajuanSebagaiKasubag Pengajuan[] @relation("KasubagToPengajuan")
-  auditLogs               AuditLog[]
+  pengajuanSebagaiPemohon     Pengajuan[] @relation("PemohonToPengajuan")
+  pengajuanSebagaiVerifikator Pengajuan[] @relation("VerifikatorToPengajuan")
+  pengajuanSebagaiKasubag     Pengajuan[] @relation("KasubagToPengajuan")
+  auditLogs                   AuditLog[]
 
   @@map("users")
 }
@@ -53,6 +54,14 @@ model Pengajuan {
   rekananNama     String?  // e.g. "PT. Harapan Utama Makmur" (bengkel tujuan)
   status          String   @default("menunggu") // menunggu | disetujui | ditolak
 
+  // Verifikasi (sebelum dikirim ke kasubag)
+  // menunggu_verifikasi -> diverifikasi -> (lanjut ke kasubag)
+  //                    -> ditolak_verifikator (final, tidak diteruskan)
+  statusVerifikasi    String    @default("menunggu_verifikasi")
+  catatanVerifikator  String?
+  verifiedById        String?
+  verifiedAt          DateTime?
+
   ttdPemohon      String?  // base64 PNG data URL
   ttdKasubag      String?  // base64 PNG data URL
 
@@ -61,10 +70,11 @@ model Pengajuan {
   tanggalPutusan   DateTime?
   kasubagId        String?
 
-  user      User       @relation("PemohonToPengajuan", fields: [userId], references: [id])
-  kasubag   User?      @relation("KasubagToPengajuan", fields: [kasubagId], references: [id])
-  kendaraan Kendaraan  @relation(fields: [kendaraanId], references: [id])
-  auditLogs AuditLog[]
+  user        User       @relation("PemohonToPengajuan", fields: [userId], references: [id])
+  verifikator User?      @relation("VerifikatorToPengajuan", fields: [verifiedById], references: [id])
+  kasubag     User?      @relation("KasubagToPengajuan", fields: [kasubagId], references: [id])
+  kendaraan   Kendaraan  @relation(fields: [kendaraanId], references: [id])
+  auditLogs   AuditLog[]
 
   @@map("pengajuan")
 }

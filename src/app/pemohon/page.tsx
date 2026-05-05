@@ -4,7 +4,7 @@ import { getSessionUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/status-badge";
+import { StatusBadge, VerifStatusBadge } from "@/components/status-badge";
 import { formatTanggal } from "@/lib/utils";
 import { ArrowRight, Clock, FileText, PlusCircle, CheckCircle2, XCircle } from "lucide-react";
 
@@ -103,6 +103,9 @@ export default async function PemohonDashboard() {
                           {p.kendaraan.platNomor} · {p.kendaraan.merkModel}
                         </p>
                         <StatusBadge status={p.status} />
+                        {p.status === "menunggu" && (
+                          <VerifStatusBadge status={p.statusVerifikasi} />
+                        )}
                       </div>
                       <p className="text-xs text-zinc-500 mt-1 line-clamp-1">
                         {p.detailKerusakan}

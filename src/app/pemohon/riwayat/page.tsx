@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
-import { StatusBadge } from "@/components/status-badge";
+import { StatusBadge, VerifStatusBadge } from "@/components/status-badge";
 import { formatTanggal } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
 
@@ -49,6 +49,9 @@ export default async function RiwayatPemohon() {
                           {p.kendaraan.platNomor} · {p.kendaraan.merkModel}
                         </p>
                         <StatusBadge status={p.status} />
+                        {p.status === "menunggu" && (
+                          <VerifStatusBadge status={p.statusVerifikasi} />
+                        )}
                       </div>
                       <p className="text-xs text-zinc-500 mt-1 line-clamp-1">
                         {p.detailKerusakan}
