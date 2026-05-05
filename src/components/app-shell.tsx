@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Car,
+  ClipboardCheck,
   FileSpreadsheet,
   History,
   Inbox,
@@ -26,11 +27,18 @@ type NavItem = {
   icon: React.ComponentType<{ className?: string }>;
 };
 
-const NAV_CONFIG: Record<"pemohon" | "kasubag" | "admin", NavItem[]> = {
+const NAV_CONFIG: Record<
+  "pemohon" | "verifikator" | "kasubag" | "admin",
+  NavItem[]
+> = {
   pemohon: [
     { href: "/pemohon", label: "Dashboard", icon: LayoutDashboard },
     { href: "/pemohon/pengajuan/baru", label: "Pengajuan Baru", icon: PlusCircle },
     { href: "/pemohon/riwayat", label: "Riwayat", icon: History },
+  ],
+  verifikator: [
+    { href: "/verifikator", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/verifikator/pengajuan", label: "Inbox Verifikasi", icon: ClipboardCheck },
   ],
   kasubag: [
     { href: "/kasubag", label: "Dashboard", icon: LayoutDashboard },
@@ -51,7 +59,7 @@ const NAV_CONFIG: Record<"pemohon" | "kasubag" | "admin", NavItem[]> = {
 };
 
 type Props = {
-  role: "pemohon" | "kasubag" | "admin";
+  role: "pemohon" | "verifikator" | "kasubag" | "admin";
   user: { namaLengkap: string; unitKerja: string | null };
   children: React.ReactNode;
 };
@@ -120,7 +128,13 @@ export function AppShell({ role, user, children }: Props) {
                   </div>
                 </div>
                 <Badge
-                  variant={role === "kasubag" ? "warning" : "success"}
+                  variant={
+                    role === "kasubag"
+                      ? "warning"
+                      : role === "verifikator"
+                        ? "info"
+                        : "success"
+                  }
                   className="mt-2 capitalize"
                 >
                   {role === "admin" ? "Administrator" : role}

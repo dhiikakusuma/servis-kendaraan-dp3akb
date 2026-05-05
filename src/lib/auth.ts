@@ -46,7 +46,9 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   return user;
 }
 
-export async function requireUser(role?: "pemohon" | "kasubag" | "admin") {
+export async function requireUser(
+  role?: "pemohon" | "verifikator" | "kasubag" | "admin",
+) {
   const user = await getSessionUser();
   if (!user) return null;
   if (role && user.role !== role) return null;

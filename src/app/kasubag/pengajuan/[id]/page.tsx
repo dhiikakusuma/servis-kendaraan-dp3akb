@@ -18,6 +18,7 @@ export default async function KasubagPengajuanDetail({
     where: { id },
     include: {
       user: { select: { id: true, namaLengkap: true, nip: true, unitKerja: true } },
+      verifikator: { select: { id: true, namaLengkap: true, nip: true, jabatan: true } },
       kasubag: { select: { id: true, namaLengkap: true, nip: true, jabatan: true } },
       kendaraan: true,
     },
@@ -29,6 +30,7 @@ export default async function KasubagPengajuanDetail({
     tanggalPengajuan: p.tanggalPengajuan.toISOString(),
     tanggalRencana: p.tanggalRencana.toISOString(),
     tanggalPutusan: p.tanggalPutusan ? p.tanggalPutusan.toISOString() : null,
+    verifiedAt: p.verifiedAt ? p.verifiedAt.toISOString() : null,
   };
 
   return (

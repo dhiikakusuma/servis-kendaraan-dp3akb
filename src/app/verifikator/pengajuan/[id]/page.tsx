@@ -5,14 +5,14 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { PengajuanDetailView } from "@/components/pengajuan-detail-view";
 
-export default async function PemohonPengajuanDetail({
+export default async function VerifikatorPengajuanDetail({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
   const user = await getSessionUser();
-  if (!user) redirect("/login/pemohon");
+  if (!user) redirect("/login/verifikator");
 
   const p = await prisma.pengajuan.findUnique({
     where: { id },
@@ -24,7 +24,6 @@ export default async function PemohonPengajuanDetail({
     },
   });
   if (!p) notFound();
-  if (p.userId !== user.id) redirect("/pemohon");
 
   const serialized = {
     ...p,
@@ -37,12 +36,12 @@ export default async function PemohonPengajuanDetail({
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <Link
-        href="/pemohon"
+        href="/verifikator/pengajuan"
         className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-900"
       >
-        <ArrowLeft className="h-4 w-4" /> Kembali ke dashboard
+        <ArrowLeft className="h-4 w-4" /> Kembali ke inbox
       </Link>
-      <PengajuanDetailView pengajuan={serialized} viewerRole="pemohon" />
+      <PengajuanDetailView pengajuan={serialized} viewerRole="verifikator" />
     </div>
   );
 }
