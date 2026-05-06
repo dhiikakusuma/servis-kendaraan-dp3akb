@@ -16,14 +16,17 @@ type Props = {
     unitKerja: string;
     jabatan: string;
   };
+  role?: "kasubag" | "verifikator";
 };
 
-export function PengaturanForm({ initial }: Props) {
+export function PengaturanForm({ initial, role = "kasubag" }: Props) {
   const router = useRouter();
+  const isVerifikator = role === "verifikator";
+  const defaultJabatan = isVerifikator ? "STAFF VERIFIKATOR" : "KASUBAG UMUM";
   const [namaLengkap, setNama] = useState(initial.namaLengkap);
   const [nip, setNip] = useState(initial.nip);
   const [unitKerja, setUnit] = useState(initial.unitKerja);
-  const [jabatan, setJabatan] = useState(initial.jabatan || "KASUBAG UMUM");
+  const [jabatan, setJabatan] = useState(initial.jabatan || defaultJabatan);
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -53,7 +56,11 @@ export function PengaturanForm({ initial }: Props) {
       const text = await res.text();
       const json = text ? JSON.parse(text) : {};
       if (!res.ok) throw new Error(json.error ?? "Gagal menyimpan");
-      toast.success("Data penandatangan berhasil diperbarui");
+      toast.success(
+        isVerifikator
+          ? "Data verifikator berhasil diperbarui"
+          : "Data penandatangan berhasil diperbarui",
+      );
       setPassword("");
       router.refresh();
     } catch (err) {
@@ -67,9 +74,13 @@ export function PengaturanForm({ initial }: Props) {
     <div className="space-y-6 max-w-3xl">
       <div>
         <p className="text-xs uppercase tracking-[0.2em] text-brand-700">PENGATURAN</p>
-        <h1 className="text-2xl sm:text-3xl font-semibold">Data Penandatangan</h1>
+        <h1 className="text-2xl sm:text-3xl font-semibold">
+          {isVerifikator ? "Data Verifikator" : "Data Penandatangan"}
+        </h1>
         <p className="mt-1 text-sm text-zinc-500">
-          Nama dan jabatan di bawah ini akan tampil sebagai penandatangan pada surat pengantar service kendaraan.
+          {isVerifikator
+            ? "Perbarui nama dan jabatan yang akan tampil pada catatan verifikasi pengajuan."
+            : "Nama dan jabatan di bawah ini akan tampil sebagai penandatangan pada surat pengantar service kendaraan."}
         </p>
       </div>
 
@@ -77,10 +88,12 @@ export function PengaturanForm({ initial }: Props) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <UserCog className="h-5 w-5 text-brand-700" />
-            Identitas Penandatangan
+            {isVerifikator ? "Identitas Verifikator" : "Identitas Penandatangan"}
           </CardTitle>
           <CardDescription>
-            Informasi ini akan dicetak pada blok tanda tangan kanan surat pengantar.
+            {isVerifikator
+              ? "Informasi ini menjadi identitas Anda saat memverifikasi pengajuan service."
+              : "Informasi ini akan dicetak pada blok tanda tangan kanan surat pengantar."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -97,16 +110,20 @@ export function PengaturanForm({ initial }: Props) {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="jabatan">Jabatan Penandatangan *</Label>
+                <Label htmlFor="jabatan">
+                  {isVerifikator ? "Jabatan *" : "Jabatan Penandatangan *"}
+                </Label>
                 <Input
                   id="jabatan"
                   value={jabatan}
                   onChange={(e) => setJabatan(e.target.value)}
-                  placeholder="KASUBAG UMUM"
+                  placeholder={defaultJabatan}
                   required
                 />
                 <p className="text-xs text-zinc-500">
-                  Akan ditulis KAPITAL di atas nama pada surat.
+                  {isVerifikator
+                    ? "Akan ditampilkan pada profil dan catatan verifikasi."
+                    : "Akan ditulis KAPITAL di atas nama pada surat."}
                 </p>
               </div>
               <div className="space-y-1.5">
@@ -132,18 +149,36 @@ export function PengaturanForm({ initial }: Props) {
             <div className="rounded-xl border border-brand-200 bg-brand-50/50 p-4">
               <div className="flex items-center gap-2 text-sm font-medium text-brand-900">
                 <ShieldCheck className="h-4 w-4" />
-                Preview pada surat
+                {isVerifikator ? "Preview profil" : "Preview pada surat"}
               </div>
-              <div className="mt-3 grid gap-1 text-sm">
-                <span className="font-bold uppercase">{jabatan || "KASUBAG UMUM"}</span>
-                <span className="italic text-brand-800 text-lg" style={{ fontFamily: "'Brush Script MT','Lucida Handwriting',cursive" }}>
-                  {namaLengkap || "Nama Kasubag"}
-                </span>
-                <span className="font-semibold border-b border-zinc-400 inline-block w-fit">
-                  {namaLengkap || "Nama Kasubag"}
-                </span>
-                {nip && <span className="text-xs text-zinc-500">NIP. {nip}</span>}
-              </div>
+              {isVerifikator ? (
+                <div className="mt-3 grid gap-1 text-sm">
+                  <span className="font-bold uppercase">
+                    {jabatan || defaultJabatan}
+                  </span>
+                  <span className="font-semibold">
+                    {namaLengkap || "Nama Verifikator"}
+                  </span>
+                  {nip && <span className="text-xs text-zinc-500">NIP. {nip}</span>}
+                  {unitKerja && (
+                    <span className="text-xs text-zinc-500">{unitKerja}</span>
+                  )}
+                </div>
+              ) : (
+                <div className="mt-3 grid gap-1 text-sm">
+                  <span className="font-bold uppercase">{jabatan || "KASUBAG UMUM"}</span>
+                  <span
+                    className="italic text-brand-800 text-lg"
+                    style={{ fontFamily: "'Brush Script MT','Lucida Handwriting',cursive" }}
+                  >
+                    {namaLengkap || "Nama Kasubag"}
+                  </span>
+                  <span className="font-semibold border-b border-zinc-400 inline-block w-fit">
+                    {namaLengkap || "Nama Kasubag"}
+                  </span>
+                  {nip && <span className="text-xs text-zinc-500">NIP. {nip}</span>}
+                </div>
+              )}
             </div>
 
             <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 space-y-2">

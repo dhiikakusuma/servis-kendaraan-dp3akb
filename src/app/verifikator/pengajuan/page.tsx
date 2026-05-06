@@ -1,11 +1,27 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
-import { VerifStatusBadge } from "@/components/status-badge";
-import { formatTanggal } from "@/lib/utils";
+import {
+  VerifikatorInboxList,
+  type InboxItem,
+} from "@/components/verifikator-inbox-list";
+
+const TAB_KEYS = [
+  "menunggu_verifikasi",
+  "diverifikasi",
+  "ditolak_verifikator",
+  "arsip",
+] as const;
+type TabKey = (typeof TAB_KEYS)[number];
+
+const TABS: { key: TabKey; label: string }[] = [
+  { key: "menunggu_verifikasi", label: "Menunggu" },
+  { key: "diverifikasi", label: "Sudah Diverifikasi" },
+  { key: "ditolak_verifikator", label: "Ditolak" },
+  { key: "arsip", label: "Arsip" },
+];
 
 export default async function InboxVerifikator({
   searchParams,
@@ -16,20 +32,39 @@ export default async function InboxVerifikator({
   if (!user) redirect("/login/verifikator");
   const { status } = await searchParams;
 
-  const allowed = ["menunggu_verifikasi", "diverifikasi", "ditolak_verifikator"];
-  const filter = status && allowed.includes(status) ? status : "menunggu_verifikasi";
+  const filter: TabKey =
+    status && (TAB_KEYS as readonly string[]).includes(status)
+      ? (status as TabKey)
+      : "menunggu_verifikasi";
+
+  const where =
+    filter === "arsip"
+      ? { archivedAt: { not: null } }
+      : { statusVerifikasi: filter, archivedAt: null };
 
   const list = await prisma.pengajuan.findMany({
-    where: { statusVerifikasi: filter },
+    where,
     include: { user: true, kendaraan: true },
     orderBy: { tanggalPengajuan: "desc" },
   });
 
-  const tabs = [
-    { key: "menunggu_verifikasi", label: "Menunggu" },
-    { key: "diverifikasi", label: "Sudah Diverifikasi" },
-    { key: "ditolak_verifikator", label: "Ditolak" },
-  ];
+  const [archivedCount, pendingCount] = await Promise.all([
+    prisma.pengajuan.count({ where: { archivedAt: { not: null } } }),
+    prisma.pengajuan.count({
+      where: { statusVerifikasi: "menunggu_verifikasi", archivedAt: null },
+    }),
+  ]);
+
+  const items: InboxItem[] = list.map((p) => ({
+    id: p.id,
+    detailKerusakan: p.detailKerusakan,
+    statusVerifikasi: p.statusVerifikasi,
+    tanggalPengajuan: p.tanggalPengajuan.toISOString(),
+    verifiedAt: p.verifiedAt ? p.verifiedAt.toISOString() : null,
+    archivedAt: p.archivedAt ? p.archivedAt.toISOString() : null,
+    user: { namaLengkap: p.user.namaLengkap, unitKerja: p.user.unitKerja },
+    kendaraan: { platNomor: p.kendaraan.platNomor, merkModel: p.kendaraan.merkModel },
+  }));
 
   return (
     <div className="space-y-6">
@@ -41,19 +76,34 @@ export default async function InboxVerifikator({
       </div>
 
       <div className="flex items-center gap-2 border-b border-zinc-200 overflow-x-auto">
-        {tabs.map((t) => {
+        {TABS.map((t) => {
           const active = filter === t.key;
+          const badgeCount =
+            t.key === "menunggu_verifikasi"
+              ? pendingCount
+              : t.key === "arsip"
+                ? archivedCount
+                : null;
           return (
             <Link
               key={t.key}
               href={`/verifikator/pengajuan?status=${t.key}`}
-              className={`px-4 py-2.5 text-sm font-medium -mb-px border-b-2 transition-colors whitespace-nowrap ${
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium -mb-px border-b-2 transition-colors whitespace-nowrap ${
                 active
                   ? "border-brand-600 text-brand-700"
                   : "border-transparent text-zinc-500 hover:text-zinc-900"
               }`}
             >
               {t.label}
+              {badgeCount != null && badgeCount > 0 && (
+                <span
+                  className={`inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                    active ? "bg-brand-100 text-brand-700" : "bg-zinc-100 text-zinc-600"
+                  }`}
+                >
+                  {badgeCount}
+                </span>
+              )}
             </Link>
           );
         })}
@@ -61,43 +111,10 @@ export default async function InboxVerifikator({
 
       <Card>
         <CardContent className="p-0">
-          {list.length === 0 ? (
-            <div className="p-10 text-center">
-              <p className="text-sm text-zinc-500">Tidak ada pengajuan pada kategori ini.</p>
-            </div>
-          ) : (
-            <ul className="divide-y divide-zinc-100">
-              {list.map((p) => (
-                <li key={p.id}>
-                  <Link
-                    href={`/verifikator/pengajuan/${p.id}`}
-                    className="flex items-center justify-between p-5 hover:bg-zinc-50 transition-colors"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-medium text-sm text-zinc-900">
-                          {p.kendaraan.platNomor} · {p.kendaraan.merkModel}
-                        </p>
-                        <VerifStatusBadge status={p.statusVerifikasi} />
-                      </div>
-                      <p className="text-xs text-zinc-500 mt-1">
-                        <strong>{p.user.namaLengkap}</strong>
-                        {p.user.unitKerja && ` · ${p.user.unitKerja}`}
-                      </p>
-                      <p className="text-xs text-zinc-400 mt-1 line-clamp-1">
-                        {p.detailKerusakan}
-                      </p>
-                      <p className="text-xs text-zinc-400 mt-1">
-                        Diajukan {formatTanggal(p.tanggalPengajuan)}
-                        {p.verifiedAt && ` · Diverifikasi ${formatTanggal(p.verifiedAt)}`}
-                      </p>
-                    </div>
-                    <ArrowRight className="h-4 w-4 text-zinc-400 ml-2 flex-shrink-0" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
+          <VerifikatorInboxList
+            items={items}
+            view={filter === "arsip" ? "archive" : "active"}
+          />
         </CardContent>
       </Card>
     </div>

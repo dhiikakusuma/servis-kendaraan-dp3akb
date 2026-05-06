@@ -12,7 +12,11 @@ export async function GET() {
 export async function PATCH(req: NextRequest) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (user.role !== "kasubag" && user.role !== "admin") {
+  if (
+    user.role !== "kasubag" &&
+    user.role !== "admin" &&
+    user.role !== "verifikator"
+  ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

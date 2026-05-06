@@ -15,10 +15,11 @@ export default async function VerifikatorDashboard() {
   const [counts, pending] = await Promise.all([
     prisma.pengajuan.groupBy({
       by: ["statusVerifikasi"],
+      where: { archivedAt: null },
       _count: true,
     }),
     prisma.pengajuan.findMany({
-      where: { statusVerifikasi: "menunggu_verifikasi" },
+      where: { statusVerifikasi: "menunggu_verifikasi", archivedAt: null },
       include: { user: true, kendaraan: true },
       orderBy: { tanggalPengajuan: "desc" },
       take: 5,

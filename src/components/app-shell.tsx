@@ -39,6 +39,7 @@ const NAV_CONFIG: Record<
   verifikator: [
     { href: "/verifikator", label: "Dashboard", icon: LayoutDashboard },
     { href: "/verifikator/pengajuan", label: "Inbox Verifikasi", icon: ClipboardCheck },
+    { href: "/verifikator/pengaturan", label: "Pengaturan", icon: Settings },
   ],
   kasubag: [
     { href: "/kasubag", label: "Dashboard", icon: LayoutDashboard },
